@@ -255,7 +255,7 @@ class DrumEngine {
     })
   }
 
-  trigger(soundId: string, volume?: number) {
+  trigger(soundId: string, volume?: number, time?: number) {
     if (!this.initialized) return
 
     const voice = this.voices.get(soundId)
@@ -265,15 +265,15 @@ class DrumEngine {
       voice.channel.volume.value = volume
     }
 
-    const now = Tone.now()
+    const t = time ?? Tone.now()
 
     // Special handling for layered snare
     if (soundId === 'snare') {
       const membraneVoice = this.voices.get('snare__membrane')
       if (membraneVoice) {
-        ;(membraneVoice.synth as Tone.MembraneSynth).triggerAttackRelease('G4', '16n', now)
+        ;(membraneVoice.synth as Tone.MembraneSynth).triggerAttackRelease('G4', '16n', t)
       }
-      ;(voice.synth as Tone.NoiseSynth).triggerAttackRelease('16n', now)
+      ;(voice.synth as Tone.NoiseSynth).triggerAttackRelease('16n', t)
       return
     }
 
@@ -281,14 +281,14 @@ class DrumEngine {
       if (voice.synth.state === 'started') {
         voice.synth.stop()
       }
-      voice.synth.start(now)
+      voice.synth.start(t)
     } else if (voice.synth instanceof Tone.NoiseSynth) {
-      voice.synth.triggerAttackRelease('16n', now)
+      voice.synth.triggerAttackRelease('16n', t)
     } else if (voice.synth instanceof Tone.MetalSynth) {
-      voice.synth.triggerAttackRelease('16n', now)
+      voice.synth.triggerAttackRelease('16n', t)
     } else if (voice.synth instanceof Tone.MembraneSynth || voice.synth instanceof Tone.MonoSynth) {
       const note = voice.triggerNote ?? 'C2'
-      voice.synth.triggerAttackRelease(note, '8n', now)
+      voice.synth.triggerAttackRelease(note, '8n', t)
     }
   }
 

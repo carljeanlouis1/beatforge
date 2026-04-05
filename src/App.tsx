@@ -3,6 +3,8 @@ import { PadGrid } from '@/components/PadGrid/PadGrid'
 import { InstrumentSelector } from '@/components/Piano/InstrumentSelector'
 import { PianoKeyboard } from '@/components/Piano/PianoKeyboard'
 import { OctaveControl } from '@/components/Piano/OctaveControl'
+import { AIForge } from '@/components/AIForge/AIForge'
+import { StepSequencer } from '@/components/Sequencer/StepSequencer'
 import { useKeyboardInput } from '@/hooks/useKeyboardInput'
 import type { AppSection } from '@/types'
 
@@ -25,17 +27,9 @@ function SectionContent({ section }: { section: AppSection }) {
     case 'keys':
       return <KeysSection />
     case 'forge':
-      return (
-        <div className="flex items-center justify-center h-64 rounded-2xl bg-white border border-slate-200 shadow-sm">
-          <p className="text-slate-400 font-medium">AI Sound Forge — Coming soon</p>
-        </div>
-      )
+      return <AIForge />
     case 'sequencer':
-      return (
-        <div className="flex items-center justify-center h-64 rounded-2xl bg-white border border-slate-200 shadow-sm">
-          <p className="text-slate-400 font-medium">Step Sequencer — Coming soon</p>
-        </div>
-      )
+      return <StepSequencer />
     case 'mixer':
       return (
         <div className="flex items-center justify-center h-64 rounded-2xl bg-white border border-slate-200 shadow-sm">
