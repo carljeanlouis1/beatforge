@@ -11,8 +11,14 @@ interface GenerateRequest {
   category?: string
 }
 
-function corsHeaders(env: Env): Record<string, string> {
-  const origin = env.ALLOWED_ORIGIN || '*'
+function corsHeaders(env: Env, request?: Request): Record<string, string> {
+  const allowedOrigins = (env.ALLOWED_ORIGIN || '*').split(',').map(o => o.trim())
+  const requestOrigin = request?.headers.get('Origin') || ''
+  const origin = allowedOrigins.includes('*')
+    ? '*'
+    : allowedOrigins.includes(requestOrigin)
+      ? requestOrigin
+      : allowedOrigins[0]
   return {
     'Access-Control-Allow-Origin': origin,
     'Access-Control-Allow-Methods': 'POST, OPTIONS',
@@ -20,12 +26,12 @@ function corsHeaders(env: Env): Record<string, string> {
   }
 }
 
-function jsonResponse(body: unknown, status: number, env: Env): Response {
+function jsonResponse(body: unknown, status: number, env: Env, request?: Request): Response {
   return new Response(JSON.stringify(body), {
     status,
     headers: {
       'Content-Type': 'application/json',
-      ...corsHeaders(env),
+      ...corsHeaders(env, request),
     },
   })
 }
@@ -105,7 +111,7 @@ export default {
     if (request.method === 'OPTIONS') {
       return new Response(null, {
         status: 204,
-        headers: corsHeaders(env),
+        headers: corsHeaders(env, request),
       })
     }
 
@@ -115,12 +121,12 @@ export default {
       try {
         body = await request.json()
       } catch {
-        return jsonResponse({ error: 'Invalid JSON body' }, 400, env)
+        return jsonResponse({ error: 'Invalid JSON body' }, 400, env, request)
       }
 
       const validation = validateRequest(body)
       if (!validation.valid) {
-        return jsonResponse({ error: validation.error }, 400, env)
+        return jsonResponse({ error: validation.error }, 400, env, request)
       }
 
       const { text, duration_seconds, prompt_influence, loop, category } = validation.data
@@ -157,7 +163,8 @@ export default {
         return jsonResponse(
           { error: 'Failed to connect to sound generation service' },
           502,
-          env
+          env,
+          request
         )
       }
 
@@ -171,7 +178,8 @@ export default {
         return jsonResponse(
           { error: 'Sound generation failed', details: errorBody },
           elevenLabsResponse.status,
-          env
+          env,
+          request
         )
       }
 
@@ -180,12 +188,12 @@ export default {
         status: 200,
         headers: {
           'Content-Type': 'audio/mpeg',
-          ...corsHeaders(env),
+          ...corsHeaders(env, request),
         },
       })
     }
 
     // 404 for all other routes
-    return jsonResponse({ error: 'Not found' }, 404, env)
+    return jsonResponse({ error: 'Not found' }, 404, env, request)
   },
 } satisfies ExportedHandler<Env>
