@@ -1,5 +1,5 @@
 import { useEffect, useCallback, useState } from 'react'
-import { Trash2, Plus, Grid3X3 } from 'lucide-react'
+import { Eraser, RotateCcw, Plus, Grid3X3 } from 'lucide-react'
 import { clsx } from 'clsx'
 import { useSequencerStore } from '@/stores/useSequencerStore'
 import { useTransportStore } from '@/stores/useTransportStore'
@@ -9,7 +9,7 @@ import { DRUM_SOUNDS, PAD_COLORS } from '@/utils/constants'
 import { SequencerRow } from '@/components/Sequencer/SequencerRow'
 
 export function StepSequencer() {
-  const { stepCount, tracks, toggleStep, setStepCount, removeTrack, toggleTrackMute, clearPattern, addTrack } =
+  const { stepCount, tracks, toggleStep, setStepCount, removeTrack, toggleTrackMute, clearPattern, resetSequencer, addTrack } =
     useSequencerStore()
   const { currentStep, isPlaying, setCurrentStep } = useTransportStore()
   const [showAddMenu, setShowAddMenu] = useState(false)
@@ -94,13 +94,27 @@ export function StepSequencer() {
             </button>
           </div>
 
-          {/* Clear button */}
+          {/* Clear Steps button */}
           <button
             onClick={clearPattern}
-            className="flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-medium text-slate-500 hover:text-red-500 hover:bg-red-50 border border-slate-200 transition-colors"
+            className="flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-medium text-slate-500 hover:text-slate-700 hover:bg-slate-50 border border-slate-200 transition-colors"
           >
-            <Trash2 size={12} />
-            Clear
+            <Eraser size={12} />
+            Clear Steps
+          </button>
+
+          {/* Reset All button */}
+          <button
+            onClick={() => {
+              if (isPlaying) {
+                useTransportStore.getState().stop()
+              }
+              resetSequencer()
+            }}
+            className="flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-medium text-red-400 hover:text-red-600 hover:bg-red-50 border border-red-200 transition-colors"
+          >
+            <RotateCcw size={12} />
+            Reset All
           </button>
 
           {/* Add track */}

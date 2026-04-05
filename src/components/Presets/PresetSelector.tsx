@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Music, Zap } from 'lucide-react'
+import { Music, Zap, X } from 'lucide-react'
 import { clsx } from 'clsx'
 import { PRESET_BEATS, GENRE_COLORS } from '@/utils/presets'
 import { useSequencerStore } from '@/stores/useSequencerStore'
@@ -30,10 +30,12 @@ function PresetCard({
   preset,
   isActive,
   onSelect,
+  onClear,
 }: {
   preset: PresetBeat
   isActive: boolean
   onSelect: () => void
+  onClear: () => void
 }) {
   const genreStyle = GENRE_COLORS[preset.genre] ?? {
     bg: 'bg-slate-50',
@@ -45,13 +47,25 @@ function PresetCard({
     <button
       onClick={onSelect}
       className={clsx(
-        'flex-shrink-0 w-44 p-3 rounded-xl border transition-all text-left',
+        'relative flex-shrink-0 w-44 p-3 rounded-xl border transition-all text-left',
         'hover:shadow-md hover:-translate-y-0.5',
         isActive
           ? 'border-indigo-300 bg-indigo-50/60 shadow-sm shadow-indigo-100'
           : 'border-slate-200 bg-white hover:border-indigo-200'
       )}
     >
+      {isActive && (
+        <span
+          role="button"
+          onClick={(e) => {
+            e.stopPropagation()
+            onClear()
+          }}
+          className="absolute top-1.5 right-1.5 w-5 h-5 rounded-full bg-slate-200 hover:bg-red-100 flex items-center justify-center transition-colors z-10"
+        >
+          <X size={10} className="text-slate-500 hover:text-red-500" />
+        </span>
+      )}
       <div className="flex items-start justify-between mb-2">
         <div>
           <h3 className="font-semibold text-sm text-slate-800">{preset.name}</h3>
@@ -76,9 +90,24 @@ function PresetCard({
 export function PresetSelector() {
   const [activePreset, setActivePreset] = useState<string | null>(null)
   const loadPattern = useSequencerStore((s) => s.loadPattern)
+  const resetSequencer = useSequencerStore((s) => s.resetSequencer)
   const setBpm = useTransportStore((s) => s.setBpm)
 
+  const handleClearPreset = () => {
+    if (useTransportStore.getState().isPlaying) {
+      useTransportStore.getState().stop()
+    }
+    resetSequencer()
+    setActivePreset(null)
+  }
+
   const handleSelect = (preset: PresetBeat) => {
+    // If clicking the active preset, deselect it
+    if (activePreset === preset.id) {
+      handleClearPreset()
+      return
+    }
+
     // Convert preset pattern + pads into SequencerTracks
     const tracks: SequencerTrack[] = preset.pads.map((pad, i) => ({
       soundId: pad.soundId,
@@ -112,6 +141,7 @@ export function PresetSelector() {
             preset={preset}
             isActive={activePreset === preset.id}
             onSelect={() => handleSelect(preset)}
+            onClear={handleClearPreset}
           />
         ))}
       </div>

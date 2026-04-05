@@ -16,6 +16,7 @@ import {
 import { useVoiceStore } from '@/stores/useVoiceStore'
 import { VoiceRecordButton } from '@/components/VoiceStudio/VoiceRecordButton'
 import { RecordingCard } from '@/components/VoiceStudio/RecordingCard'
+import { WaveformEditor } from '@/components/VoiceStudio/WaveformEditor'
 
 export function VoiceStudio() {
   const pitchShift = useVoiceStore((s) => s.pitchShift)
@@ -43,6 +44,7 @@ export function VoiceStudio() {
   const effectFilterType = useVoiceStore((s) => s.effectFilterType)
   const isPreviewingEffects = useVoiceStore((s) => s.isPreviewingEffects)
   const isRenderingEffects = useVoiceStore((s) => s.isRenderingEffects)
+  const updateRecordingAudio = useVoiceStore((s) => s.updateRecordingAudio)
   const setEffectPitch = useVoiceStore((s) => s.setEffectPitch)
   const setEffectReverb = useVoiceStore((s) => s.setEffectReverb)
   const setEffectDelay = useVoiceStore((s) => s.setEffectDelay)
@@ -329,6 +331,22 @@ export function VoiceStudio() {
                 Selected: {selectedRecording.name}
               </p>
             </div>
+
+            {/* Waveform Editor */}
+            <WaveformEditor
+              audioUrl={selectedRecording.audioUrl}
+              audioBlob={selectedRecording.audioBlob}
+              onTrimmed={(blob, url) => {
+                // Compute duration from the blob
+                const audio = new Audio(url)
+                audio.onloadedmetadata = () => {
+                  updateRecordingAudio(selectedRecording.id, blob, url, audio.duration || selectedRecording.duration)
+                }
+                audio.onerror = () => {
+                  updateRecordingAudio(selectedRecording.id, blob, url, selectedRecording.duration)
+                }
+              }}
+            />
 
             {/* Pitch effect */}
             <div className="space-y-1.5">

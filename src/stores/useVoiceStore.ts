@@ -54,6 +54,9 @@ interface VoiceState {
   addRecordingToSoundLibrary: (id: string) => Promise<void>
   selectRecording: (id: string) => void
 
+  // Waveform trim
+  updateRecordingAudio: (id: string, blob: Blob, url: string, duration: number) => void
+
   // Effects actions
   setEffectPitch: (v: number) => void
   setEffectReverb: (enabled: boolean, wet: number) => void
@@ -267,6 +270,22 @@ export const useVoiceStore = create<VoiceState>()((set, get) => ({
 
   selectRecording: (id: string) => {
     set({ selectedRecordingId: id })
+  },
+
+  // --- Waveform trim ---
+
+  updateRecordingAudio: (id: string, blob: Blob, url: string, duration: number) => {
+    const recording = get().recordings.find((r) => r.id === id)
+    if (recording) {
+      URL.revokeObjectURL(recording.audioUrl)
+    }
+    set((state) => ({
+      recordings: state.recordings.map((r) =>
+        r.id === id
+          ? { ...r, audioBlob: blob, audioUrl: url, duration }
+          : r
+      ),
+    }))
   },
 
   // --- Effects actions ---

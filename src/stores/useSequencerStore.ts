@@ -13,6 +13,7 @@ interface SequencerState {
   toggleTrackMute: (index: number) => void
   setTrackVolume: (index: number, volume: number) => void
   clearPattern: () => void
+  resetSequencer: () => void
   loadPattern: (tracks: SequencerTrack[]) => void
   initDefaultTracks: () => void
 }
@@ -115,6 +116,11 @@ export const useSequencerStore = create<SequencerState>()(
             steps: createEmptySteps(state.stepCount),
           })),
         }))
+      },
+
+      resetSequencer: () => {
+        const { stepCount } = get()
+        set({ tracks: createDefaultTracks(stepCount) })
       },
 
       loadPattern: (tracks: SequencerTrack[]) => {
