@@ -319,6 +319,11 @@ class DrumEngine {
     this.voices.set(soundId, { synth: player, channel })
   }
 
+  getChannel(soundId: string): Tone.Channel | null {
+    const voice = this.voices.get(soundId)
+    return voice?.channel ?? null
+  }
+
   dispose() {
     this.voices.forEach((voice) => {
       voice.synth.dispose()

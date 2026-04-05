@@ -5,6 +5,8 @@ import { PianoKeyboard } from '@/components/Piano/PianoKeyboard'
 import { OctaveControl } from '@/components/Piano/OctaveControl'
 import { AIForge } from '@/components/AIForge/AIForge'
 import { StepSequencer } from '@/components/Sequencer/StepSequencer'
+import { MixerPanel } from '@/components/Mixer/MixerPanel'
+import { PresetSelector } from '@/components/Presets/PresetSelector'
 import { useKeyboardInput } from '@/hooks/useKeyboardInput'
 import type { AppSection } from '@/types'
 
@@ -29,19 +31,52 @@ function SectionContent({ section }: { section: AppSection }) {
     case 'forge':
       return <AIForge />
     case 'sequencer':
-      return <StepSequencer />
-    case 'mixer':
       return (
-        <div className="flex items-center justify-center h-64 rounded-2xl bg-white border border-slate-200 shadow-sm">
-          <p className="text-slate-400 font-medium">Mixer — Coming soon</p>
+        <div className="space-y-4">
+          <PresetSelector />
+          <StepSequencer />
         </div>
       )
+    case 'mixer':
+      return <MixerPanel />
   }
+}
+
+function DesktopLayout() {
+  useKeyboardInput(true)
+
+  return (
+    <div className="space-y-4 max-w-7xl mx-auto">
+      {/* Top row: Pad Grid + AI Forge side by side */}
+      <div className="grid grid-cols-5 gap-4">
+        <div className="col-span-3">
+          <PadGrid />
+        </div>
+        <div className="col-span-2">
+          <AIForge />
+        </div>
+      </div>
+
+      {/* Piano keyboard full width */}
+      <div className="space-y-4">
+        <InstrumentSelector />
+        <PianoKeyboard />
+        <OctaveControl />
+      </div>
+
+      {/* Preset Selector + Step Sequencer */}
+      <PresetSelector />
+      <StepSequencer />
+
+      {/* Mixer */}
+      <MixerPanel />
+    </div>
+  )
 }
 
 function App() {
   return (
-    <AppShell>
+    <AppShell desktopContent={<DesktopLayout />}>
       {(activeSection) => <SectionContent section={activeSection} />}
     </AppShell>
   )
