@@ -1,12 +1,44 @@
+import { useState, useEffect, useRef } from 'react'
 import { Play, Square, Circle, Repeat, ChevronUp, ChevronDown, HelpCircle } from 'lucide-react'
 import { useTransportStore } from '@/stores/useTransportStore'
 import { useWalkthroughStore } from '@/stores/useWalkthroughStore'
 import { clsx } from 'clsx'
 
+function RecordingTimer() {
+  const [elapsed, setElapsed] = useState(0)
+  const startRef = useRef(Date.now())
+
+  useEffect(() => {
+    startRef.current = Date.now()
+    const interval = setInterval(() => {
+      setElapsed(Math.floor((Date.now() - startRef.current) / 1000))
+    }, 200)
+    return () => clearInterval(interval)
+  }, [])
+
+  const mins = Math.floor(elapsed / 60)
+  const secs = elapsed % 60
+
+  return (
+    <div className="hidden sm:flex items-center gap-1.5 px-2 py-1 rounded-lg bg-red-50 border border-red-200">
+      <div className="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse" />
+      <span className="text-xs font-mono font-medium text-red-600">
+        {mins}:{secs.toString().padStart(2, '0')}
+      </span>
+    </div>
+  )
+}
+
 export function TransportBar() {
   const { bpm, isPlaying, isRecording, isLooping, currentStep, setBpm, togglePlay, toggleRecord, toggleLoop, tapTempo } =
     useTransportStore()
   const openWalkthrough = useWalkthroughStore((s) => s.open)
+
+  // We try to import useLoopStore dynamically since it may be built by another agent
+  // For now, the record button toggles transport recording which loop store can observe
+  const handleRecord = () => {
+    toggleRecord()
+  }
 
   return (
     <header className="glass-strong sticky top-0 z-50 px-4 py-2 flex items-center justify-between gap-4 shadow-sm">
@@ -35,7 +67,7 @@ export function TransportBar() {
         </button>
 
         <button
-          onClick={toggleRecord}
+          onClick={handleRecord}
           className={clsx(
             'w-10 h-10 rounded-xl flex items-center justify-center transition-all',
             isRecording
@@ -67,6 +99,9 @@ export function TransportBar() {
             </span>
           </div>
         )}
+
+        {/* Recording timer */}
+        {isRecording && <RecordingTimer />}
       </div>
 
       {/* BPM Control */}

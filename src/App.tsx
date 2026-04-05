@@ -7,6 +7,9 @@ import { AIForge } from '@/components/AIForge/AIForge'
 import { StepSequencer } from '@/components/Sequencer/StepSequencer'
 import { MixerPanel } from '@/components/Mixer/MixerPanel'
 import { PresetSelector } from '@/components/Presets/PresetSelector'
+import { LoopStation } from '@/components/LoopStation/LoopStation'
+import { VoiceStudio } from '@/components/VoiceStudio/VoiceStudio'
+import { CustomKitManager } from '@/components/SoundManager/CustomKitManager'
 import { useKeyboardInput } from '@/hooks/useKeyboardInput'
 import type { AppSection } from '@/types'
 
@@ -39,6 +42,10 @@ function SectionContent({ section }: { section: AppSection }) {
       )
     case 'mixer':
       return <MixerPanel />
+    case 'loops':
+      return <LoopStation />
+    case 'voice':
+      return <VoiceStudio />
   }
 }
 
@@ -63,6 +70,15 @@ function DesktopLayout() {
         <PianoKeyboard />
         <OctaveControl />
       </div>
+
+      {/* Loop Station + Voice Studio side by side */}
+      <div className="grid grid-cols-2 gap-4">
+        <LoopStation />
+        <VoiceStudio />
+      </div>
+
+      {/* Custom Kit Manager */}
+      <CustomKitManager />
 
       {/* Preset Selector + Step Sequencer */}
       <PresetSelector />

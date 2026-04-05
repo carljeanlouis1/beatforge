@@ -1,12 +1,15 @@
 import { useEffect, useState, useRef, useCallback } from 'react'
-import { Play, Pause, Trash2, Pencil, Check, X, Grid3X3 } from 'lucide-react'
+import { Play, Pause, Trash2, Pencil, Check, X, Grid3X3, Sparkles, Mic, Music } from 'lucide-react'
 import * as Tone from 'tone'
 import { useSoundLibraryStore } from '@/stores/useSoundLibraryStore'
 import { usePadStore } from '@/stores/usePadStore'
 import { drumEngine } from '@/engine/DrumEngine'
 import { audioEngine } from '@/engine/AudioEngine'
 import { PAD_COLOR_HEX } from '@/utils/constants'
+import { clsx } from 'clsx'
 import type { StoredSound } from '@/types'
+
+type FilterTab = 'all' | 'ai' | 'recorded' | 'voice'
 
 const CATEGORY_COLORS: Record<string, string> = {
   drums: 'bg-orange-100 text-orange-700',
@@ -15,6 +18,22 @@ const CATEGORY_COLORS: Record<string, string> = {
   musical: 'bg-emerald-100 text-emerald-700',
   fun: 'bg-pink-100 text-pink-700',
   fx: 'bg-amber-100 text-amber-700',
+  voice: 'bg-violet-100 text-violet-700',
+}
+
+const SOURCE_BADGES: Record<string, { label: string; class: string; icon: typeof Sparkles }> = {
+  ai: { label: 'AI', class: 'bg-amber-50 text-amber-600 border-amber-200', icon: Sparkles },
+  recorded: { label: 'Rec', class: 'bg-emerald-50 text-emerald-600 border-emerald-200', icon: Music },
+  voice: { label: 'Voice', class: 'bg-violet-50 text-violet-600 border-violet-200', icon: Mic },
+}
+
+function getSoundSourceType(sound: StoredSound): 'ai' | 'recorded' | 'voice' {
+  if (sound.category === 'voice') return 'voice'
+  // Sounds created via voice recording often have "voice" or "vocal" in prompt
+  if (sound.prompt?.toLowerCase().includes('voice') || sound.prompt?.toLowerCase().includes('vocal')) return 'voice'
+  // Sounds with "recorded" category
+  if (sound.category === 'recorded') return 'recorded'
+  return 'ai'
 }
 
 function SoundCard({ sound }: { sound: StoredSound }) {
@@ -176,7 +195,19 @@ function SoundCard({ sound }: { sound: StoredSound }) {
           <p className="text-[11px] text-slate-400 truncate mt-0.5">
             {sound.prompt}
           </p>
-          <div className="flex items-center gap-2 mt-1.5">
+          <div className="flex items-center gap-1.5 mt-1.5 flex-wrap">
+            {(() => {
+              const srcType = getSoundSourceType(sound)
+              const badge = SOURCE_BADGES[srcType]
+              if (!badge) return null
+              const BadgeIcon = badge.icon
+              return (
+                <span className={`inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded border text-[10px] font-medium ${badge.class}`}>
+                  <BadgeIcon className="w-2.5 h-2.5" />
+                  {badge.label}
+                </span>
+              )
+            })()}
             <span className={`px-1.5 py-0.5 rounded text-[10px] font-medium ${categoryClass}`}>
               {sound.category}
             </span>
@@ -256,14 +287,27 @@ function SoundCard({ sound }: { sound: StoredSound }) {
   )
 }
 
+const FILTER_TABS: { id: FilterTab; label: string; icon: typeof Sparkles }[] = [
+  { id: 'all', label: 'All', icon: Music },
+  { id: 'ai', label: 'AI Generated', icon: Sparkles },
+  { id: 'recorded', label: 'Recorded', icon: Music },
+  { id: 'voice', label: 'Voice', icon: Mic },
+]
+
 export function SoundLibrary() {
   const sounds = useSoundLibraryStore((s) => s.sounds)
   const isLoading = useSoundLibraryStore((s) => s.isLoading)
   const loadSounds = useSoundLibraryStore((s) => s.loadSounds)
+  const [activeFilter, setActiveFilter] = useState<FilterTab>('all')
 
   useEffect(() => {
     void loadSounds()
   }, [loadSounds])
+
+  const filteredSounds = sounds.filter((sound) => {
+    if (activeFilter === 'all') return true
+    return getSoundSourceType(sound) === activeFilter
+  })
 
   if (isLoading) {
     return (
@@ -273,21 +317,60 @@ export function SoundLibrary() {
     )
   }
 
-  if (sounds.length === 0) {
-    return (
-      <div className="text-center py-8">
-        <p className="text-sm text-slate-400">
-          No sounds yet. Create your first sound above!
-        </p>
-      </div>
-    )
-  }
-
   return (
-    <div className="space-y-2">
-      {sounds.map((sound) => (
-        <SoundCard key={sound.id} sound={sound} />
-      ))}
+    <div className="space-y-3">
+      {/* Filter tabs */}
+      {sounds.length > 0 && (
+        <div className="flex items-center gap-1 p-0.5 rounded-lg bg-slate-100">
+          {FILTER_TABS.map((tab) => {
+            const TabIcon = tab.icon
+            const count = tab.id === 'all'
+              ? sounds.length
+              : sounds.filter((s) => getSoundSourceType(s) === tab.id).length
+            return (
+              <button
+                key={tab.id}
+                onClick={() => setActiveFilter(tab.id)}
+                className={clsx(
+                  'flex items-center gap-1 px-2.5 py-1.5 rounded-md text-[11px] font-medium transition-all duration-150 flex-1 justify-center',
+                  activeFilter === tab.id
+                    ? 'bg-white text-slate-700 shadow-sm'
+                    : 'text-slate-400 hover:text-slate-600'
+                )}
+              >
+                <TabIcon className="w-3 h-3" />
+                <span className="hidden sm:inline">{tab.label}</span>
+                {count > 0 && (
+                  <span className={clsx(
+                    'text-[9px] px-1 py-px rounded-full',
+                    activeFilter === tab.id ? 'bg-indigo-100 text-indigo-600' : 'bg-slate-200 text-slate-500'
+                  )}>
+                    {count}
+                  </span>
+                )}
+              </button>
+            )
+          })}
+        </div>
+      )}
+
+      {/* Sound list */}
+      {filteredSounds.length === 0 ? (
+        <div className="text-center py-8">
+          <p className="text-sm text-slate-400">
+            {sounds.length === 0
+              ? 'No sounds yet. Create your first sound above!'
+              : `No ${activeFilter === 'all' ? '' : activeFilter + ' '}sounds found.`
+            }
+          </p>
+        </div>
+      ) : (
+        <div className="space-y-2">
+          {filteredSounds.map((sound) => (
+            <SoundCard key={sound.id} sound={sound} />
+          ))}
+        </div>
+      )}
     </div>
   )
 }

@@ -79,4 +79,57 @@ export interface PresetBeat {
   pattern: boolean[][]
 }
 
-export type AppSection = 'pads' | 'keys' | 'forge' | 'sequencer' | 'mixer'
+export type AppSection = 'pads' | 'keys' | 'forge' | 'sequencer' | 'mixer' | 'loops' | 'voice'
+
+// Loop Recording
+export interface LoopTrack {
+  id: string
+  name: string
+  audioUrl: string
+  duration: number
+  measures: number
+  bpm: number
+  muted: boolean
+  volume: number
+  createdAt: number
+}
+
+export interface LoopSession {
+  id: string
+  name: string
+  bpm: number
+  measures: number
+  tracks: LoopTrack[]
+  createdAt: number
+}
+
+// Voice Recording
+export interface VoiceRecording {
+  id: string
+  name: string
+  audioBlob: Blob
+  audioUrl: string
+  duration: number
+  pitchShift: number
+  isTransformed: boolean
+  transformedBlob?: Blob
+  transformedUrl?: string
+  createdAt: number
+}
+
+// Custom Drum Kit
+export interface CustomDrumKit {
+  id: string
+  name: string
+  sounds: KitSound[]
+  createdAt: number
+}
+
+export interface KitSound {
+  padIndex: number
+  soundId: string
+  label: string
+  color: string
+  sourceType: 'builtin' | 'ai-generated' | 'recorded'
+  storedSoundId?: string
+}

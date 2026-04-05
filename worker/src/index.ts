@@ -21,7 +21,7 @@ function corsHeaders(env: Env, request?: Request): Record<string, string> {
       : allowedOrigins[0]
   return {
     'Access-Control-Allow-Origin': origin,
-    'Access-Control-Allow-Methods': 'POST, OPTIONS',
+    'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
     'Access-Control-Allow-Headers': 'Content-Type',
   }
 }
@@ -191,6 +191,191 @@ export default {
           ...corsHeaders(env, request),
         },
       })
+    }
+
+    // Route: POST /api/voice-transform
+    if (request.method === 'POST' && url.pathname === '/api/voice-transform') {
+      let body: unknown
+      try {
+        body = await request.json()
+      } catch {
+        return jsonResponse({ error: 'Invalid JSON body' }, 400, env, request)
+      }
+
+      const req = body as Record<string, unknown>
+
+      if (typeof req.audio !== 'string' || req.audio.length === 0) {
+        return jsonResponse({ error: '`audio` is required (base64 encoded)' }, 400, env, request)
+      }
+
+      if (typeof req.voice_id !== 'string' || req.voice_id.length === 0) {
+        return jsonResponse({ error: '`voice_id` is required' }, 400, env, request)
+      }
+
+      const audioBytes = Uint8Array.from(atob(req.audio as string), (c) => c.charCodeAt(0))
+      const audioFile = new File([audioBytes], 'audio.mp3', { type: 'audio/mpeg' })
+
+      const formData = new FormData()
+      formData.append('audio', audioFile)
+      formData.append('model_id', 'eleven_english_sts_v2')
+
+      let elevenLabsResponse: Response
+      try {
+        elevenLabsResponse = await fetch(
+          `https://api.elevenlabs.io/v1/speech-to-speech/${req.voice_id}?output_format=mp3_44100_128`,
+          {
+            method: 'POST',
+            headers: {
+              'xi-api-key': env.ELEVENLABS_API_KEY,
+            },
+            body: formData,
+          }
+        )
+      } catch {
+        return jsonResponse(
+          { error: 'Failed to connect to voice transformation service' },
+          502,
+          env,
+          request
+        )
+      }
+
+      if (!elevenLabsResponse.ok) {
+        let errorBody: unknown
+        try {
+          errorBody = await elevenLabsResponse.json()
+        } catch {
+          errorBody = { message: 'Unknown error from voice transformation service' }
+        }
+        return jsonResponse(
+          { error: 'Voice transformation failed', details: errorBody },
+          elevenLabsResponse.status,
+          env,
+          request
+        )
+      }
+
+      return new Response(elevenLabsResponse.body, {
+        status: 200,
+        headers: {
+          'Content-Type': 'audio/mpeg',
+          ...corsHeaders(env, request),
+        },
+      })
+    }
+
+    // Route: POST /api/audio-isolate
+    if (request.method === 'POST' && url.pathname === '/api/audio-isolate') {
+      let body: unknown
+      try {
+        body = await request.json()
+      } catch {
+        return jsonResponse({ error: 'Invalid JSON body' }, 400, env, request)
+      }
+
+      const req = body as Record<string, unknown>
+
+      if (typeof req.audio !== 'string' || req.audio.length === 0) {
+        return jsonResponse({ error: '`audio` is required (base64 encoded)' }, 400, env, request)
+      }
+
+      const audioBytes = Uint8Array.from(atob(req.audio as string), (c) => c.charCodeAt(0))
+      const audioFile = new File([audioBytes], 'audio.mp3', { type: 'audio/mpeg' })
+
+      const formData = new FormData()
+      formData.append('audio', audioFile)
+
+      let elevenLabsResponse: Response
+      try {
+        elevenLabsResponse = await fetch(
+          'https://api.elevenlabs.io/v1/audio-isolation',
+          {
+            method: 'POST',
+            headers: {
+              'xi-api-key': env.ELEVENLABS_API_KEY,
+            },
+            body: formData,
+          }
+        )
+      } catch {
+        return jsonResponse(
+          { error: 'Failed to connect to audio isolation service' },
+          502,
+          env,
+          request
+        )
+      }
+
+      if (!elevenLabsResponse.ok) {
+        let errorBody: unknown
+        try {
+          errorBody = await elevenLabsResponse.json()
+        } catch {
+          errorBody = { message: 'Unknown error from audio isolation service' }
+        }
+        return jsonResponse(
+          { error: 'Audio isolation failed', details: errorBody },
+          elevenLabsResponse.status,
+          env,
+          request
+        )
+      }
+
+      return new Response(elevenLabsResponse.body, {
+        status: 200,
+        headers: {
+          'Content-Type': 'audio/mpeg',
+          ...corsHeaders(env, request),
+        },
+      })
+    }
+
+    // Route: GET /api/voices
+    if (request.method === 'GET' && url.pathname === '/api/voices') {
+      let elevenLabsResponse: Response
+      try {
+        elevenLabsResponse = await fetch(
+          'https://api.elevenlabs.io/v1/voices',
+          {
+            method: 'GET',
+            headers: {
+              'xi-api-key': env.ELEVENLABS_API_KEY,
+            },
+          }
+        )
+      } catch {
+        return jsonResponse(
+          { error: 'Failed to connect to voices service' },
+          502,
+          env,
+          request
+        )
+      }
+
+      if (!elevenLabsResponse.ok) {
+        let errorBody: unknown
+        try {
+          errorBody = await elevenLabsResponse.json()
+        } catch {
+          errorBody = { message: 'Unknown error from voices service' }
+        }
+        return jsonResponse(
+          { error: 'Failed to fetch voices', details: errorBody },
+          elevenLabsResponse.status,
+          env,
+          request
+        )
+      }
+
+      const data = await elevenLabsResponse.json() as { voices: Array<{ voice_id: string; name: string; labels: Record<string, string>; preview_url: string }> }
+      const voices = data.voices.map((v) => ({
+        voice_id: v.voice_id,
+        name: v.name,
+        labels: v.labels ?? {},
+        preview_url: v.preview_url ?? '',
+      }))
+
+      return jsonResponse(voices, 200, env, request)
     }
 
     // 404 for all other routes

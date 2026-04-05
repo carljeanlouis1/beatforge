@@ -10,6 +10,9 @@ import {
   Heart,
   Disc3,
   Rocket,
+  Repeat,
+  Mic,
+  Drum,
 } from 'lucide-react'
 import { useWalkthroughStore } from '@/stores/useWalkthroughStore'
 import { clsx } from 'clsx'
@@ -52,6 +55,24 @@ const STEPS: TourStep[] = [
     iconColor: 'text-emerald-500 bg-emerald-50 border-emerald-100',
     title: 'Step Sequencer',
     body: "This is where you build patterns. Each row is a different drum sound, and each column is a beat. Click the cells to turn sounds on or off, then press Play to hear your pattern loop. Try loading a preset pattern first to see how it works!",
+  },
+  {
+    icon: Repeat,
+    iconColor: 'text-teal-500 bg-teal-50 border-teal-100',
+    title: 'Loop Station',
+    body: "Want to build a beat layer by layer? The Loop Station is your jam! Set how many measures you want, hit Record, and play some pads. When it stops, your beat loops automatically. Hit Record again to add another layer on top \u2014 drums, then bass, then hi-hats. Stack as many layers as you want!",
+  },
+  {
+    icon: Mic,
+    iconColor: 'text-rose-500 bg-rose-50 border-rose-100',
+    title: 'Voice Studio',
+    body: "Here\u2019s where it gets really fun \u2014 you can record your own voice! Sing, beatbox, or make any sound into the mic. Use the Pitch Shift slider to tune your voice up or down (instant autotune vibes). You can even use AI to transform your voice into something completely different. Add your recordings to pads and loop them!",
+  },
+  {
+    icon: Drum,
+    iconColor: 'text-violet-500 bg-violet-50 border-violet-100',
+    title: 'Custom Drum Kits',
+    body: "Made the perfect combination of sounds? Save it as a custom drum kit so you can switch between different setups. Mix AI-generated sounds, voice recordings, and built-in drums to create something totally unique. You can always restore the defaults if you want to start fresh.",
   },
   {
     icon: Disc3,

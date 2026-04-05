@@ -1,7 +1,7 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 
-const TOTAL_STEPS = 10
+const TOTAL_STEPS = 13
 
 interface WalkthroughState {
   isOpen: boolean

@@ -1,13 +1,15 @@
-import { Grid3X3, Piano, Sparkles, ListMusic, Sliders } from 'lucide-react'
+import { Grid3X3, Piano, Sparkles, ListMusic, Sliders, Repeat, Mic } from 'lucide-react'
 import type { AppSection } from '@/types'
 import { clsx } from 'clsx'
 
 const tabs: { id: AppSection; label: string; icon: React.ReactNode }[] = [
-  { id: 'pads', label: 'Pads', icon: <Grid3X3 size={20} /> },
-  { id: 'keys', label: 'Keys', icon: <Piano size={20} /> },
-  { id: 'forge', label: 'AI Forge', icon: <Sparkles size={20} /> },
-  { id: 'sequencer', label: 'Sequence', icon: <ListMusic size={20} /> },
-  { id: 'mixer', label: 'Mixer', icon: <Sliders size={20} /> },
+  { id: 'pads', label: 'Pads', icon: <Grid3X3 size={18} /> },
+  { id: 'keys', label: 'Keys', icon: <Piano size={18} /> },
+  { id: 'forge', label: 'Forge', icon: <Sparkles size={18} /> },
+  { id: 'loops', label: 'Loops', icon: <Repeat size={18} /> },
+  { id: 'voice', label: 'Voice', icon: <Mic size={18} /> },
+  { id: 'sequencer', label: 'Seq', icon: <ListMusic size={18} /> },
+  { id: 'mixer', label: 'Mix', icon: <Sliders size={18} /> },
 ]
 
 interface NavigationProps {
@@ -24,14 +26,14 @@ export function Navigation({ activeSection, onSectionChange }: NavigationProps) 
             key={tab.id}
             onClick={() => onSectionChange(tab.id)}
             className={clsx(
-              'flex flex-col items-center gap-0.5 px-3 py-1.5 rounded-xl transition-all min-w-[56px]',
+              'flex flex-col items-center gap-0.5 px-1.5 py-1.5 rounded-xl transition-all min-w-0 flex-1',
               activeSection === tab.id
                 ? 'text-indigo-600 bg-indigo-50'
                 : 'text-slate-400 hover:text-slate-600'
             )}
           >
             {tab.icon}
-            <span className="text-[10px] font-medium">{tab.label}</span>
+            <span className="text-[9px] font-medium leading-tight">{tab.label}</span>
           </button>
         ))}
       </div>
