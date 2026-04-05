@@ -13,6 +13,7 @@ interface LoopState {
   tracks: LoopTrack[]
   activeSessionId: string | null
   isLoopPlaying: boolean
+  loopStartTime: number | null
 
   setMeasures: (m: number) => void
   startRecording: () => void
@@ -48,6 +49,7 @@ export const useLoopStore = create<LoopState>()((set, get) => {
     tracks: [],
     activeSessionId: null,
     isLoopPlaying: false,
+    loopStartTime: null,
 
     setMeasures: (m: number) => {
       set({ measures: m })
@@ -69,7 +71,7 @@ export const useLoopStore = create<LoopState>()((set, get) => {
       // Start all existing loop players so user hears them during overdub
       if (get().tracks.length > 0) {
         recordingEngine.startAll()
-        set({ isLoopPlaying: true })
+        set({ isLoopPlaying: true, loopStartTime: performance.now() })
       }
 
       recordingEngine.startRecording(measures, bpm)
@@ -119,6 +121,7 @@ export const useLoopStore = create<LoopState>()((set, get) => {
           recordingTotal: 0,
           tracks: [...s.tracks, track],
           isLoopPlaying: true,
+          loopStartTime: s.loopStartTime ?? performance.now(),
         }))
       } catch {
         set({
@@ -180,12 +183,12 @@ export const useLoopStore = create<LoopState>()((set, get) => {
         Tone.getTransport().start()
       }
       recordingEngine.startAll()
-      set({ isLoopPlaying: true })
+      set({ isLoopPlaying: true, loopStartTime: performance.now() })
     },
 
     stopAll: () => {
       recordingEngine.stopAll()
-      set({ isLoopPlaying: false })
+      set({ isLoopPlaying: false, loopStartTime: null })
     },
 
     clearAll: () => {
@@ -194,7 +197,7 @@ export const useLoopStore = create<LoopState>()((set, get) => {
         recordingEngine.removeTrack(track.id)
       }
       trackCounter = 0
-      set({ tracks: [], isLoopPlaying: false })
+      set({ tracks: [], isLoopPlaying: false, loopStartTime: null })
     },
   }
 })

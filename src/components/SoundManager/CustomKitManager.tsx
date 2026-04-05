@@ -9,8 +9,10 @@ import {
   RotateCcw,
   Drum,
   Music,
+  Sliders,
 } from 'lucide-react'
 import { useCustomKitStore } from '@/stores/useCustomKitStore'
+import { PadBuilder } from '@/components/SoundManager/PadBuilder'
 import { clsx } from 'clsx'
 import type { CustomDrumKit } from '@/types'
 
@@ -173,6 +175,7 @@ export function CustomKitManager() {
   const loadKitsFromStorage = useCustomKitStore((s) => s.loadKitsFromStorage)
 
   const [showNameInput, setShowNameInput] = useState(false)
+  const [showPadBuilder, setShowPadBuilder] = useState(false)
   const [kitName, setKitName] = useState('')
   const [isSaving, setIsSaving] = useState(false)
   const nameInputRef = useRef<HTMLInputElement>(null)
@@ -223,6 +226,19 @@ export function CustomKitManager() {
         </div>
 
         <div className="flex items-center gap-1.5">
+          <button
+            onClick={() => setShowPadBuilder(!showPadBuilder)}
+            className={clsx(
+              'flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-[11px] font-medium transition-all duration-150',
+              showPadBuilder
+                ? 'text-indigo-700 bg-indigo-100 border border-indigo-200'
+                : 'text-slate-500 bg-slate-50 border border-slate-200 hover:bg-slate-100 hover:text-slate-700'
+            )}
+            title="Build a custom kit"
+          >
+            <Sliders className="w-3 h-3" />
+            <span className="hidden sm:inline">{showPadBuilder ? 'Close Builder' : 'Build Kit'}</span>
+          </button>
           <button
             onClick={restoreDefaults}
             className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-[11px] font-medium
@@ -283,6 +299,13 @@ export function CustomKitManager() {
           >
             <X className="w-4 h-4" />
           </button>
+        </div>
+      )}
+
+      {/* Pad Builder */}
+      {showPadBuilder && (
+        <div className="mb-3">
+          <PadBuilder onClose={() => setShowPadBuilder(false)} />
         </div>
       )}
 

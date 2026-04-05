@@ -3,6 +3,7 @@ import { Play, Square, Trash2, Circle } from 'lucide-react'
 import { clsx } from 'clsx'
 import { useLoopStore } from '@/stores/useLoopStore'
 import { LoopTrackRow } from '@/components/LoopStation/LoopTrackRow'
+import { LoopVisualizer } from '@/components/LoopStation/LoopVisualizer'
 
 const MEASURE_OPTIONS = [1, 2, 4, 8] as const
 
@@ -178,6 +179,9 @@ export function LoopStation() {
           </div>
         </div>
       )}
+
+      {/* Loop Visualizer */}
+      {tracks.length > 0 && <LoopVisualizer />}
 
       {/* Transport controls */}
       {tracks.length > 0 && (

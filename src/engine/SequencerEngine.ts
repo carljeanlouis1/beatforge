@@ -9,6 +9,7 @@ interface SequencerTrackData {
 }
 
 type StepCallback = (step: number) => void
+type SoundTriggerCallback = (soundIds: string[]) => void
 
 class SequencerEngine {
   private sequence: Tone.Sequence | null = null
@@ -16,6 +17,7 @@ class SequencerEngine {
   private stepCount: 16 | 32 = 16
   private currentStep = 0
   private stepCallbacks: StepCallback[] = []
+  private soundTriggerCallbacks: SoundTriggerCallback[] = []
 
   setPattern(tracks: SequencerTrackData[]) {
     this.tracks = tracks
@@ -46,6 +48,14 @@ class SequencerEngine {
 
   removeStepCallback(callback: StepCallback) {
     this.stepCallbacks = this.stepCallbacks.filter((cb) => cb !== callback)
+  }
+
+  onSoundTrigger(callback: SoundTriggerCallback) {
+    this.soundTriggerCallbacks.push(callback)
+  }
+
+  removeSoundTriggerCallback(callback: SoundTriggerCallback) {
+    this.soundTriggerCallbacks = this.soundTriggerCallbacks.filter((cb) => cb !== callback)
   }
 
   start() {
@@ -87,17 +97,22 @@ class SequencerEngine {
       (time, stepIndex) => {
         this.currentStep = stepIndex
 
-        // Trigger active tracks for this step
+        // Trigger active tracks for this step and collect triggered soundIds
+        const triggeredSoundIds: string[] = []
         for (const track of this.tracks) {
           if (!track.muted && track.steps[stepIndex]) {
             const db = track.volume <= 0 ? -Infinity : -60 + (track.volume / 100) * 60
             drumEngine.trigger(track.soundId, db, time)
+            triggeredSoundIds.push(track.soundId)
           }
         }
 
         // Notify UI of current step — use Tone.getDraw() for visual sync
         Tone.getDraw().schedule(() => {
           this.notifyStep(stepIndex)
+          if (triggeredSoundIds.length > 0) {
+            this.notifySoundTrigger(triggeredSoundIds)
+          }
         }, time)
       },
       steps,
@@ -108,6 +123,12 @@ class SequencerEngine {
   private notifyStep(step: number) {
     for (const cb of this.stepCallbacks) {
       cb(step)
+    }
+  }
+
+  private notifySoundTrigger(soundIds: string[]) {
+    for (const cb of this.soundTriggerCallbacks) {
+      cb(soundIds)
     }
   }
 }

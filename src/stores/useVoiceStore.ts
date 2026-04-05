@@ -1,9 +1,11 @@
 import { create } from 'zustand'
 import { voiceEngine } from '@/engine/VoiceEngine'
+import { voiceEffectsProcessor } from '@/engine/VoiceEffectsProcessor'
 import {
   transformVoice as transformVoiceApi,
   isolateAudio as isolateAudioApi,
   listVoices as listVoicesApi,
+  textToSpeech as textToSpeechApi,
 } from '@/services/voice'
 import type { VoiceInfo } from '@/services/voice'
 import { saveSound } from '@/services/storage'
@@ -20,6 +22,25 @@ interface VoiceState {
   monitorEnabled: boolean
   micPermission: 'prompt' | 'granted' | 'denied'
 
+  // Effects state
+  effectPitch: number
+  effectReverb: number
+  effectReverbEnabled: boolean
+  effectDelay: number
+  effectDelayEnabled: boolean
+  effectFilterFreq: number
+  effectFilterEnabled: boolean
+  effectFilterType: BiquadFilterType
+  isPreviewingEffects: boolean
+  isRenderingEffects: boolean
+
+  // TTS state
+  ttsText: string
+  ttsStability: number
+  ttsSimilarity: number
+  isGeneratingTTS: boolean
+  ttsResult: { blob: Blob; url: string } | null
+
   startRecording: () => Promise<void>
   stopRecording: () => Promise<void>
   setPitchShift: (semitones: number) => void
@@ -32,6 +53,23 @@ interface VoiceState {
   toggleMonitor: () => void
   addRecordingToSoundLibrary: (id: string) => Promise<void>
   selectRecording: (id: string) => void
+
+  // Effects actions
+  setEffectPitch: (v: number) => void
+  setEffectReverb: (enabled: boolean, wet: number) => void
+  setEffectDelay: (enabled: boolean, wet: number) => void
+  setEffectFilter: (enabled: boolean, freq: number, type: BiquadFilterType) => void
+  previewWithEffects: () => Promise<void>
+  stopEffectsPreview: () => void
+  saveWithEffects: () => Promise<void>
+
+  // TTS actions
+  setTtsText: (text: string) => void
+  setTtsStability: (v: number) => void
+  setTtsSimilarity: (v: number) => void
+  generateTTS: () => Promise<void>
+  clearTtsResult: () => void
+  saveTtsToLibrary: () => Promise<void>
 }
 
 export const useVoiceStore = create<VoiceState>()((set, get) => ({
@@ -44,6 +82,25 @@ export const useVoiceStore = create<VoiceState>()((set, get) => ({
   selectedVoiceId: null,
   monitorEnabled: false,
   micPermission: 'prompt' as const,
+
+  // Effects defaults
+  effectPitch: 0,
+  effectReverb: 0.3,
+  effectReverbEnabled: false,
+  effectDelay: 0.2,
+  effectDelayEnabled: false,
+  effectFilterFreq: 2000,
+  effectFilterEnabled: false,
+  effectFilterType: 'lowpass' as BiquadFilterType,
+  isPreviewingEffects: false,
+  isRenderingEffects: false,
+
+  // TTS defaults
+  ttsText: '',
+  ttsStability: 0.5,
+  ttsSimilarity: 0.75,
+  isGeneratingTTS: false,
+  ttsResult: null,
 
   startRecording: async () => {
     try {
@@ -210,5 +267,180 @@ export const useVoiceStore = create<VoiceState>()((set, get) => ({
 
   selectRecording: (id: string) => {
     set({ selectedRecordingId: id })
+  },
+
+  // --- Effects actions ---
+
+  setEffectPitch: (v: number) => {
+    const clamped = Math.max(-12, Math.min(12, v))
+    set({ effectPitch: clamped })
+    voiceEffectsProcessor.setPitch(clamped)
+  },
+
+  setEffectReverb: (enabled: boolean, wet: number) => {
+    set({ effectReverbEnabled: enabled, effectReverb: wet })
+    voiceEffectsProcessor.setReverb(enabled, wet)
+  },
+
+  setEffectDelay: (enabled: boolean, wet: number) => {
+    set({ effectDelayEnabled: enabled, effectDelay: wet })
+    voiceEffectsProcessor.setDelay(enabled, wet)
+  },
+
+  setEffectFilter: (enabled: boolean, freq: number, type: BiquadFilterType) => {
+    set({ effectFilterEnabled: enabled, effectFilterFreq: freq, effectFilterType: type })
+    voiceEffectsProcessor.setFilter(enabled, freq, type)
+  },
+
+  previewWithEffects: async () => {
+    const { selectedRecordingId, recordings } = get()
+    if (!selectedRecordingId) return
+
+    const recording = recordings.find((r) => r.id === selectedRecordingId)
+    if (!recording) return
+
+    const audioUrl = recording.transformedUrl ?? recording.audioUrl
+
+    set({ isPreviewingEffects: true })
+
+    try {
+      await voiceEffectsProcessor.loadRecording(audioUrl)
+
+      // Apply current effect settings
+      const state = get()
+      voiceEffectsProcessor.setPitch(state.effectPitch)
+      voiceEffectsProcessor.setReverb(state.effectReverbEnabled, state.effectReverb)
+      voiceEffectsProcessor.setDelay(state.effectDelayEnabled, state.effectDelay)
+      voiceEffectsProcessor.setFilter(state.effectFilterEnabled, state.effectFilterFreq, state.effectFilterType)
+
+      voiceEffectsProcessor.play()
+
+      // Auto-reset after playback
+      const duration = recording.duration
+      setTimeout(() => {
+        set({ isPreviewingEffects: false })
+      }, (duration + 0.5) * 1000)
+    } catch {
+      set({ isPreviewingEffects: false })
+    }
+  },
+
+  stopEffectsPreview: () => {
+    voiceEffectsProcessor.stop()
+    set({ isPreviewingEffects: false })
+  },
+
+  saveWithEffects: async () => {
+    const { selectedRecordingId, recordings } = get()
+    if (!selectedRecordingId) return
+
+    const recording = recordings.find((r) => r.id === selectedRecordingId)
+    if (!recording) return
+
+    const audioUrl = recording.transformedUrl ?? recording.audioUrl
+
+    set({ isRenderingEffects: true })
+
+    try {
+      await voiceEffectsProcessor.loadRecording(audioUrl)
+
+      // Apply current effect settings
+      const state = get()
+      voiceEffectsProcessor.setPitch(state.effectPitch)
+      voiceEffectsProcessor.setReverb(state.effectReverbEnabled, state.effectReverb)
+      voiceEffectsProcessor.setDelay(state.effectDelayEnabled, state.effectDelay)
+      voiceEffectsProcessor.setFilter(state.effectFilterEnabled, state.effectFilterFreq, state.effectFilterType)
+
+      const blob = await voiceEffectsProcessor.renderWithEffects()
+
+      await saveSound({
+        id: crypto.randomUUID(),
+        name: `${recording.name} (FX)`,
+        prompt: `Voice recording with effects (pitch: ${state.effectPitch}, reverb: ${state.effectReverbEnabled ? state.effectReverb : 'off'}, delay: ${state.effectDelayEnabled ? state.effectDelay : 'off'}, filter: ${state.effectFilterEnabled ? `${state.effectFilterFreq}Hz ${state.effectFilterType}` : 'off'})`,
+        category: 'voice',
+        audioBlob: blob,
+        duration: recording.duration,
+        isLoop: false,
+        createdAt: Date.now(),
+      })
+
+      set({ isRenderingEffects: false })
+    } catch {
+      set({ isRenderingEffects: false })
+    }
+  },
+
+  // --- TTS actions ---
+
+  setTtsText: (text: string) => {
+    set({ ttsText: text })
+  },
+
+  setTtsStability: (v: number) => {
+    set({ ttsStability: Math.max(0, Math.min(1, v)) })
+  },
+
+  setTtsSimilarity: (v: number) => {
+    set({ ttsSimilarity: Math.max(0, Math.min(1, v)) })
+  },
+
+  generateTTS: async () => {
+    const { ttsText, selectedVoiceId, ttsStability, ttsSimilarity, ttsResult } = get()
+    if (!ttsText.trim() || !selectedVoiceId) return
+
+    // Clean up previous result
+    if (ttsResult) {
+      URL.revokeObjectURL(ttsResult.url)
+    }
+
+    set({ isGeneratingTTS: true, ttsResult: null })
+
+    try {
+      const result = await textToSpeechApi(
+        ttsText,
+        selectedVoiceId,
+        ttsStability,
+        ttsSimilarity
+      )
+
+      set({
+        isGeneratingTTS: false,
+        ttsResult: { blob: result.audioBlob, url: result.audioUrl },
+      })
+    } catch {
+      set({ isGeneratingTTS: false })
+    }
+  },
+
+  clearTtsResult: () => {
+    const { ttsResult } = get()
+    if (ttsResult) {
+      URL.revokeObjectURL(ttsResult.url)
+    }
+    set({ ttsResult: null })
+  },
+
+  saveTtsToLibrary: async () => {
+    const { ttsResult, ttsText } = get()
+    if (!ttsResult) return
+
+    // Get approximate duration from blob/audio
+    const audioEl = new Audio(ttsResult.url)
+    await new Promise<void>((resolve) => {
+      audioEl.onloadedmetadata = () => resolve()
+      audioEl.onerror = () => resolve()
+    })
+    const duration = audioEl.duration || 1
+
+    await saveSound({
+      id: crypto.randomUUID(),
+      name: ttsText.slice(0, 30) || 'TTS Sound',
+      prompt: `Text-to-speech: "${ttsText}"`,
+      category: 'voice',
+      audioBlob: ttsResult.blob,
+      duration,
+      isLoop: false,
+      createdAt: Date.now(),
+    })
   },
 }))

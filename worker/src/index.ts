@@ -193,6 +193,81 @@ export default {
       })
     }
 
+    // Route: POST /api/text-to-speech
+    if (request.method === 'POST' && url.pathname === '/api/text-to-speech') {
+      let body: unknown
+      try {
+        body = await request.json()
+      } catch {
+        return jsonResponse({ error: 'Invalid JSON body' }, 400, env, request)
+      }
+
+      const req = body as Record<string, unknown>
+
+      if (typeof req.text !== 'string' || req.text.length < 1 || req.text.length > 500) {
+        return jsonResponse({ error: '`text` is required and must be 1-500 characters' }, 400, env, request)
+      }
+
+      if (typeof req.voice_id !== 'string' || req.voice_id.length === 0) {
+        return jsonResponse({ error: '`voice_id` is required' }, 400, env, request)
+      }
+
+      const stability = typeof req.stability === 'number' ? req.stability : 0.5
+      const similarityBoost = typeof req.similarity_boost === 'number' ? req.similarity_boost : 0.75
+
+      let elevenLabsResponse: Response
+      try {
+        elevenLabsResponse = await fetch(
+          `https://api.elevenlabs.io/v1/text-to-speech/${req.voice_id}?output_format=mp3_44100_128`,
+          {
+            method: 'POST',
+            headers: {
+              'xi-api-key': env.ELEVENLABS_API_KEY,
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              text: req.text,
+              model_id: 'eleven_multilingual_v2',
+              voice_settings: {
+                stability,
+                similarity_boost: similarityBoost,
+              },
+            }),
+          }
+        )
+      } catch {
+        return jsonResponse(
+          { error: 'Failed to connect to text-to-speech service' },
+          502,
+          env,
+          request
+        )
+      }
+
+      if (!elevenLabsResponse.ok) {
+        let errorBody: unknown
+        try {
+          errorBody = await elevenLabsResponse.json()
+        } catch {
+          errorBody = { message: 'Unknown error from text-to-speech service' }
+        }
+        return jsonResponse(
+          { error: 'Text-to-speech failed', details: errorBody },
+          elevenLabsResponse.status,
+          env,
+          request
+        )
+      }
+
+      return new Response(elevenLabsResponse.body, {
+        status: 200,
+        headers: {
+          'Content-Type': 'audio/mpeg',
+          ...corsHeaders(env, request),
+        },
+      })
+    }
+
     // Route: POST /api/voice-transform
     if (request.method === 'POST' && url.pathname === '/api/voice-transform') {
       let body: unknown

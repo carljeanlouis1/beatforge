@@ -36,7 +36,7 @@ const STEPS: TourStep[] = [
     icon: Grid3X3,
     iconColor: 'text-violet-500 bg-violet-50 border-violet-100',
     title: 'Beat Pads',
-    body: 'These colorful pads are your drum machine. Tap any pad to play a sound \u2014 kicks, snares, hi-hats, and more. You can also use your keyboard: keys 1\u20134, Q\u2013R, A\u2013F, and Z\u2013V map to the 16 pads. Try tapping a few! Right-click any pad to customize its sound, volume, or color.',
+    body: 'These colorful pads are your drum machine. Tap any pad to play a sound \u2014 kicks, snares, hi-hats, and more. Pads light up during playback so you can see the rhythm! You can also use your keyboard: keys 1\u20134, Q\u2013R, A\u2013F, and Z\u2013V map to the 16 pads. Try tapping a few! Right-click any pad to customize its sound, volume, or color.',
   },
   {
     icon: Piano,
@@ -48,7 +48,7 @@ const STEPS: TourStep[] = [
     icon: Sparkles,
     iconColor: 'text-amber-500 bg-amber-50 border-amber-100',
     title: 'AI Sound Forge',
-    body: "This is the magic part. Type any sound you can imagine \u2014 like \u201Cdreamy lo-fi rain loop\u201D or \u201Cpunchy trap snare\u201D \u2014 and AI will create it for you. You can then assign it to any pad. Try the suggestion buttons for inspiration!",
+    body: "This is the magic part. Type any sound you can imagine \u2014 like \u201Cdreamy lo-fi rain loop\u201D or \u201Cpunchy trap snare\u201D \u2014 and AI will create it for you. You can then assign it to any pad. You can also AI-edit existing pad sounds via right-click \u2014 reimagine any sound! Try the suggestion buttons for inspiration!",
   },
   {
     icon: ListMusic,
@@ -66,13 +66,13 @@ const STEPS: TourStep[] = [
     icon: Mic,
     iconColor: 'text-rose-500 bg-rose-50 border-rose-100',
     title: 'Voice Studio',
-    body: "Here\u2019s where it gets really fun \u2014 you can record your own voice! Sing, beatbox, or make any sound into the mic. Use the Pitch Shift slider to tune your voice up or down (instant autotune vibes). You can even use AI to transform your voice into something completely different. Add your recordings to pads and loop them!",
+    body: "Here\u2019s where it gets really fun \u2014 you can record your own voice! Sing, beatbox, or make any sound into the mic. Use the Pitch Shift slider to tune your voice up or down (instant autotune vibes). Add effects like reverb, delay, and filter to shape your sound before saving. You can even use AI to transform your voice or use Text-to-Speech to generate vocal chops, voice tags, and ad-libs from text. Add your recordings to pads and loop them!",
   },
   {
     icon: Drum,
     iconColor: 'text-violet-500 bg-violet-50 border-violet-100',
     title: 'Custom Drum Kits',
-    body: "Made the perfect combination of sounds? Save it as a custom drum kit so you can switch between different setups. Mix AI-generated sounds, voice recordings, and built-in drums to create something totally unique. You can always restore the defaults if you want to start fresh.",
+    body: "Made the perfect combination of sounds? Save it as a custom drum kit so you can switch between different setups. Use the Pad Builder to build kits from your sound library \u2014 mix AI-generated sounds, voice recordings, and built-in drums to create something totally unique. You can always restore the defaults if you want to start fresh.",
   },
   {
     icon: Disc3,

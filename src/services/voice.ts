@@ -84,6 +84,44 @@ export async function isolateAudio(
   return { audioBlob: resultBlob, audioUrl }
 }
 
+export async function textToSpeech(
+  text: string,
+  voiceId: string,
+  stability?: number,
+  similarityBoost?: number
+): Promise<{ audioBlob: Blob; audioUrl: string }> {
+  const body: Record<string, unknown> = { text, voice_id: voiceId }
+  if (stability !== undefined) body.stability = stability
+  if (similarityBoost !== undefined) body.similarity_boost = similarityBoost
+
+  const response = await fetch(`${API_URL}/api/text-to-speech`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body),
+  })
+
+  if (!response.ok) {
+    let message = 'Text-to-speech failed'
+    try {
+      const err = (await response.json()) as { error?: string }
+      if (err.error) {
+        message = err.error
+      }
+    } catch {
+      // response wasn't JSON
+    }
+    throw new Error(message)
+  }
+
+  const resultBlob = await response.blob()
+  if (resultBlob.size === 0) {
+    throw new Error('Received empty audio response')
+  }
+
+  const audioUrl = URL.createObjectURL(resultBlob)
+  return { audioBlob: resultBlob, audioUrl }
+}
+
 export async function listVoices(): Promise<VoiceInfo[]> {
   const response = await fetch(`${API_URL}/api/voices`, {
     method: 'GET',

@@ -12,6 +12,7 @@ interface PadState {
   activePadIds: string[]
 
   triggerPad: (padId: string) => void
+  highlightPadsBySound: (soundIds: string[]) => void
   setPadSound: (padId: string, soundId: string) => void
   setPadVolume: (padId: string, volume: number) => void
   setPadColor: (padId: string, color: string) => void
@@ -67,6 +68,27 @@ export const usePadStore = create<PadState>()(
         setTimeout(() => {
           set((state) => ({
             activePadIds: state.activePadIds.filter((id) => id !== padId),
+          }))
+        }, 150)
+      },
+
+      highlightPadsBySound: (soundIds: string[]) => {
+        const pads = get().pads
+        const matchingPadIds = pads
+          .filter((p) => soundIds.includes(p.soundId))
+          .map((p) => p.id)
+
+        if (matchingPadIds.length === 0) return
+
+        set((state) => ({
+          activePadIds: [...state.activePadIds, ...matchingPadIds],
+        }))
+
+        setTimeout(() => {
+          set((state) => ({
+            activePadIds: state.activePadIds.filter(
+              (id) => !matchingPadIds.includes(id)
+            ),
           }))
         }, 150)
       },

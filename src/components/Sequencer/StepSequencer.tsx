@@ -3,6 +3,7 @@ import { Trash2, Plus, Grid3X3 } from 'lucide-react'
 import { clsx } from 'clsx'
 import { useSequencerStore } from '@/stores/useSequencerStore'
 import { useTransportStore } from '@/stores/useTransportStore'
+import { usePadStore } from '@/stores/usePadStore'
 import { sequencerEngine } from '@/engine/SequencerEngine'
 import { DRUM_SOUNDS, PAD_COLORS } from '@/utils/constants'
 import { SequencerRow } from '@/components/Sequencer/SequencerRow'
@@ -33,6 +34,18 @@ export function StepSequencer() {
       sequencerEngine.removeStepCallback(callback)
     }
   }, [setCurrentStep])
+
+  // Register sound trigger callback for pad highlighting
+  useEffect(() => {
+    const highlightPadsBySound = usePadStore.getState().highlightPadsBySound
+    const callback = (soundIds: string[]) => {
+      highlightPadsBySound(soundIds)
+    }
+    sequencerEngine.onSoundTrigger(callback)
+    return () => {
+      sequencerEngine.removeSoundTriggerCallback(callback)
+    }
+  }, [])
 
   const handleAddTrack = useCallback(
     (soundId: string, label: string) => {
