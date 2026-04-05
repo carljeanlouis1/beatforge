@@ -1,0 +1,116 @@
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Sora", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, monospace;
+
+  /* Light mode palette */
+  --color-surface: #ffffff;
+  --color-surface-raised: #ffffff;
+  --color-surface-sunken: #f1f5f9;
+  --color-border-subtle: #e2e8f0;
+
+  /* Pad accent colors */
+  --color-pad-rose: #fb7185;
+  --color-pad-orange: #fb923c;
+  --color-pad-amber: #fbbf24;
+  --color-pad-lime: #a3e635;
+  --color-pad-emerald: #34d399;
+  --color-pad-teal: #2dd4bf;
+  --color-pad-cyan: #22d3ee;
+  --color-pad-sky: #38bdf8;
+  --color-pad-blue: #60a5fa;
+  --color-pad-indigo: #818cf8;
+  --color-pad-violet: #a78bfa;
+  --color-pad-purple: #c084fc;
+  --color-pad-fuchsia: #e879f9;
+  --color-pad-pink: #f472b6;
+  --color-pad-slate: #94a3b8;
+  --color-pad-stone: #a8a29e;
+
+  --animate-pad-press: pad-press 0.15s ease-out;
+  --animate-pad-pulse: pad-pulse 0.6s ease-out;
+  --animate-glow-ring: glow-ring 0.8s ease-out;
+  --animate-fade-in: fade-in 0.2s ease-out;
+  --animate-slide-up: slide-up 0.3s ease-out;
+}
+
+@keyframes pad-press {
+  0% { transform: scale(1); }
+  50% { transform: scale(0.93); }
+  100% { transform: scale(1); }
+}
+
+@keyframes pad-pulse {
+  0% { box-shadow: 0 0 0 0 currentColor; }
+  100% { box-shadow: 0 0 0 12px transparent; }
+}
+
+@keyframes glow-ring {
+  0% { box-shadow: 0 0 0 0 currentColor; opacity: 0.6; }
+  100% { box-shadow: 0 0 0 20px transparent; opacity: 0; }
+}
+
+@keyframes fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slide-up {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Glassmorphism utility */
+.glass {
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.glass-strong {
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+/* Piano key styles */
+.piano-key-white {
+  background: linear-gradient(to bottom, #ffffff, #f8fafc);
+  border: 1px solid #e2e8f0;
+  border-radius: 0 0 6px 6px;
+  transition: all 0.08s ease;
+}
+
+.piano-key-white.active {
+  background: linear-gradient(to bottom, #e0e7ff, #c7d2fe);
+  border-color: #818cf8;
+  box-shadow: 0 0 12px rgba(129, 140, 248, 0.4);
+}
+
+.piano-key-black {
+  background: linear-gradient(to bottom, #334155, #1e293b);
+  border: 1px solid #475569;
+  border-radius: 0 0 4px 4px;
+  transition: all 0.08s ease;
+}
+
+.piano-key-black.active {
+  background: linear-gradient(to bottom, #6366f1, #4f46e5);
+  box-shadow: 0 0 12px rgba(99, 102, 241, 0.5);
+}
+
+/* Scrollbar styling */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+
+/* Prevent text selection on interactive elements */
+.no-select {
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;
+}
