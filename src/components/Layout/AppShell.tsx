@@ -1,8 +1,10 @@
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useEffect } from 'react'
 import { TransportBar } from './TransportBar'
 import { Navigation } from './Navigation'
 import { AudioInitOverlay } from './AudioInitOverlay'
+import { Walkthrough } from '@/components/Walkthrough/Walkthrough'
 import { audioEngine } from '@/engine/AudioEngine'
+import { useWalkthroughStore } from '@/stores/useWalkthroughStore'
 import type { AppSection } from '@/types'
 
 interface AppShellProps {
@@ -15,11 +17,18 @@ interface AppShellProps {
 export function AppShell({ children, desktopContent }: AppShellProps) {
   const [audioReady, setAudioReady] = useState(false)
   const [activeSection, setActiveSection] = useState<AppSection>('pads')
+  const { hasSeenTour, open: openWalkthrough } = useWalkthroughStore()
 
   const handleAudioInit = useCallback(async () => {
     await audioEngine.init()
     setAudioReady(true)
   }, [])
+
+  useEffect(() => {
+    if (audioReady && !hasSeenTour) {
+      openWalkthrough()
+    }
+  }, [audioReady, hasSeenTour, openWalkthrough])
 
   if (!audioReady) {
     return <AudioInitOverlay onInit={handleAudioInit} />
@@ -28,6 +37,7 @@ export function AppShell({ children, desktopContent }: AppShellProps) {
   return (
     <div className="min-h-screen bg-slate-50 flex flex-col">
       <TransportBar />
+      <Walkthrough />
 
       {/* Mobile layout: tab-based, one section at a time */}
       <main className="flex-1 p-3 pb-20 animate-fade-in md:hidden">

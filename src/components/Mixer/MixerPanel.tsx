@@ -68,7 +68,7 @@ export function MixerPanel() {
       </div>
 
       {/* Channel strips */}
-      <div className="rounded-2xl bg-surface-sunken border border-slate-200 shadow-sm p-4 overflow-x-auto">
+      <div className="rounded-2xl bg-surface-sunken border border-slate-200 shadow-sm p-4">
         {channels.length === 0 ? (
           <div className="flex items-center justify-center h-48">
             <p className="text-slate-400 text-sm font-medium">
@@ -76,7 +76,7 @@ export function MixerPanel() {
             </p>
           </div>
         ) : (
-          <div className="flex gap-2 pb-2 min-w-max">
+          <div className="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 gap-3">
             {channels.map((channel) => (
               <ChannelStrip
                 key={channel.id}

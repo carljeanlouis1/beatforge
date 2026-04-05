@@ -1,10 +1,12 @@
-import { Play, Square, Circle, Repeat, ChevronUp, ChevronDown } from 'lucide-react'
+import { Play, Square, Circle, Repeat, ChevronUp, ChevronDown, HelpCircle } from 'lucide-react'
 import { useTransportStore } from '@/stores/useTransportStore'
+import { useWalkthroughStore } from '@/stores/useWalkthroughStore'
 import { clsx } from 'clsx'
 
 export function TransportBar() {
   const { bpm, isPlaying, isRecording, isLooping, currentStep, setBpm, togglePlay, toggleRecord, toggleLoop, tapTempo } =
     useTransportStore()
+  const openWalkthrough = useWalkthroughStore((s) => s.open)
 
   return (
     <header className="glass-strong sticky top-0 z-50 px-4 py-2 flex items-center justify-between gap-4 shadow-sm">
@@ -92,6 +94,15 @@ export function TransportBar() {
         </button>
         <span className="text-xs text-slate-400 font-medium">BPM</span>
       </div>
+
+      {/* Help / Tour button */}
+      <button
+        onClick={openWalkthrough}
+        className="w-8 h-8 rounded-lg flex items-center justify-center text-slate-400 hover:text-indigo-500 hover:bg-indigo-50 transition-all"
+        title="Reopen tour"
+      >
+        <HelpCircle size={18} />
+      </button>
     </header>
   )
 }

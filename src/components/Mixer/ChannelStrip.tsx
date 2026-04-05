@@ -33,27 +33,27 @@ export function ChannelStrip({
   const colorHex = padColor ? PAD_COLOR_HEX[padColor] ?? '#94a3b8' : '#94a3b8'
 
   return (
-    <div className="flex flex-col items-center gap-2 w-20 shrink-0 rounded-xl bg-white border border-slate-200 shadow-sm p-2 pt-3">
+    <div className="flex flex-col items-center gap-2 w-full rounded-xl bg-white border border-slate-200 shadow-sm p-3">
       {/* Label + color dot */}
-      <div className="flex items-center gap-1.5 mb-1">
+      <div className="flex items-center gap-1.5 w-full min-w-0">
         <div
           className="w-2.5 h-2.5 rounded-full shrink-0"
           style={{ backgroundColor: colorHex }}
         />
-        <span className="text-[10px] font-semibold text-slate-700 truncate max-w-[50px]">
+        <span className="text-[11px] font-semibold text-slate-700 truncate">
           {channel.label}
         </span>
       </div>
 
-      {/* Volume fader */}
-      <div className="h-28 flex items-center justify-center">
+      {/* Volume fader (horizontal) */}
+      <div className="w-full">
         <Slider
           value={channel.volume}
           min={0}
           max={100}
           step={1}
           onChange={onVolumeChange}
-          orientation="vertical"
+          orientation="horizontal"
         />
       </div>
 
@@ -83,7 +83,7 @@ export function ChannelStrip({
       <div className="flex gap-1 mt-1">
         <button
           onClick={onToggleMute}
-          className={`w-7 h-6 rounded text-[10px] font-bold transition-colors ${
+          className={`flex-1 h-6 rounded text-[10px] font-bold transition-colors ${
             channel.muted
               ? 'bg-amber-400 text-white shadow-sm'
               : 'bg-slate-100 text-slate-400 hover:bg-slate-200'
@@ -93,7 +93,7 @@ export function ChannelStrip({
         </button>
         <button
           onClick={onToggleSolo}
-          className={`w-7 h-6 rounded text-[10px] font-bold transition-colors ${
+          className={`flex-1 h-6 rounded text-[10px] font-bold transition-colors ${
             channel.soloed
               ? 'bg-emerald-500 text-white shadow-sm'
               : 'bg-slate-100 text-slate-400 hover:bg-slate-200'
@@ -107,7 +107,7 @@ export function ChannelStrip({
       <div className="flex gap-1 mt-1">
         <button
           onClick={() => onToggleEffect('reverb')}
-          className={`w-6 h-5 rounded text-[8px] font-bold transition-colors ${
+          className={`flex-1 h-5 rounded text-[8px] font-bold transition-colors ${
             channel.effects.reverb.enabled
               ? 'bg-indigo-500 text-white shadow-sm'
               : 'bg-slate-100 text-slate-400 hover:bg-slate-200'
@@ -118,7 +118,7 @@ export function ChannelStrip({
         </button>
         <button
           onClick={() => onToggleEffect('delay')}
-          className={`w-6 h-5 rounded text-[8px] font-bold transition-colors ${
+          className={`flex-1 h-5 rounded text-[8px] font-bold transition-colors ${
             channel.effects.delay.enabled
               ? 'bg-violet-500 text-white shadow-sm'
               : 'bg-slate-100 text-slate-400 hover:bg-slate-200'
@@ -129,7 +129,7 @@ export function ChannelStrip({
         </button>
         <button
           onClick={() => onToggleEffect('filter')}
-          className={`w-6 h-5 rounded text-[8px] font-bold transition-colors ${
+          className={`flex-1 h-5 rounded text-[8px] font-bold transition-colors ${
             channel.effects.filter.enabled
               ? 'bg-sky-500 text-white shadow-sm'
               : 'bg-slate-100 text-slate-400 hover:bg-slate-200'
